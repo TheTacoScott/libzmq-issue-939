@@ -67,8 +67,11 @@ def run():
       socks = dict(poller.poll(200))
       if server in socks and socks[server] == zmq.POLLIN:
           msg = server.recv()
-          if msg == b"Hello":
-              logging.info("Ironhouse test OK")
+          logging.info("Ironhouse test OK")
+      socks = dict(poller.poll(10))
+      if server in socks and socks[server] == zmq.POLLOUT:
+        logging.info("Should never see this")
+
 
     auth.stop()
 
