@@ -20,22 +20,33 @@ def run():
 
     ctx = zmq.Context().instance()
     client = {}
-    for i in range(400):
-      logging.info("Starting Client #" + str(i))
-      client[i] = ctx.socket(zmq.DEALER)
+    while True:
+      logging.info("Starting Clients")
+      for i in range(400):
+        client[i] = ctx.socket(zmq.DEALER)
 
-      client_secret_file = os.path.join(secret_keys_dir, "client.key_secret")
-      client_public, client_secret = zmq.auth.load_certificate(client_secret_file)
-      server_secret_file = os.path.join(secret_keys_dir, "server.key_secret")
-      server_public, server_secret = zmq.auth.load_certificate(server_secret_file)
+        client_secret_file = os.path.join(secret_keys_dir, "client.key_secret")
+        client_public, client_secret = zmq.auth.load_certificate(client_secret_file)
+        server_secret_file = os.path.join(secret_keys_dir, "server.key_secret")
+        server_public, server_secret = zmq.auth.load_certificate(server_secret_file)
 
-      client[i].curve_secretkey = client_secret
-      client[i].curve_publickey = client_public
-      client[i].curve_serverkey = server_public
-      client[i].connect('tcp://127.0.0.1:9000')
-      client[i].send_multipart(['',b'Hello'])
-    logging.info("Waiting for crash to happen server side.")
-    time.sleep(1000000)
+        client[i].curve_secretkey = client_secret
+        client[i].curve_publickey = client_public
+        client[i].curve_serverkey = server_public
+        client[i].connect('tcp://127.0.0.1:9000')
+        client[i].send_multipart(['',b'Hello'])
+
+      logging.info("Sleeping for 10 Seconds")
+      time.sleep(10.0)
+
+      logging.info("Killing Clients")
+      for i in range(400):
+        client[i].close(0)
+        del client[i]
+      
+      logging.info("Sleeping for 3 Seconds")
+      time.sleep(3.0)
+      
     auth.stop()
 
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]\t[%(asctime)s] [%(filename)s:%(lineno)d] [%(funcName)s] %(message)s")
